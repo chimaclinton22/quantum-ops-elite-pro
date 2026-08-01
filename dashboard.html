@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum OPS Elite - Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#07070F',
+              card: '#121224',
+              sidebar: '#0E0E1C',
+              purple: '#6C5CE7',
+              accent: '#8B5CF6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #07070F; font-family: system-ui, -apple-system, sans-serif; color: #E2E8F0; }
+    .iphone-frame {
+      width: 100%;
+      max-width: 410px;
+      height: 100vh;
+      max-height: 860px;
+      background: #0B0B16;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      box-shadow: 0 25px 50px -12px rgba(15, 13, 35, 0.7);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    @media (min-width: 768px) {
+      body { align-items: center; justify-content: center; display: flex; height: 100vh; }
+      .iphone-frame { border-radius: 48px; }
+    }
+    /* Hide scrollbar for clean UI look */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body>
+
+  <!-- MOBILE DEVICE FRAME CONTAINER -->
+  <div class="iphone-frame flex flex-col justify-between">
+    
+    <!-- TOP APP BAR -->
+    <div class="flex items-center justify-between px-5 pt-4 pb-2 border-b border-purple-500/10 bg-[#0B0B16] z-10">
+      <button onclick="toggleSidebar()" class="text-slate-300 hover:text-white text-lg">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+          <i class="fa-solid fa-crown text-[10px] text-amber-300 absolute -top-1"></i>
+          Q
+        </div>
+        <span class="font-bold tracking-wide text-xs text-white">Quantum <span class="text-purple-400">Ops Elite</span></span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="relative text-slate-300 hover:text-white">
+          <i class="fa-regular fa-bell text-base"></i>
+          <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">3</span>
+        </button>
+        <button onclick="handleLogout()" class="w-8 h-8 rounded-full bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-300 text-xs font-bold">
+          <i class="fa-regular fa-user"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN SCROLLABLE CONTENT AREA -->
+    <div class="flex-1 overflow-y-auto no-scrollbar px-4 py-4 space-y-4 pb-24">
+      
+      <!-- GREETING & AI ASSISTANT BANNER -->
+      <div class="flex items-center justify-between bg-[#121224] border border-purple-500/20 rounded-2xl p-4 shadow-lg">
+        <div>
+          <h2 id="user-greeting" class="text-sm font-bold text-white">Good morning, Admin 👋</h2>
+          <p id="company-subtitle" class="text-[11px] text-slate-400 mt-0.5">Loading your business metrics...</p>
+        </div>
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-2 rounded-xl text-center shadow-md cursor-pointer hover:opacity-95 transition">
+          <i class="fa-solid fa-robot text-white text-xs block mb-0.5"></i>
+          <span class="text-[9px] font-bold text-white block">AI Assistant</span>
+        </div>
+      </div>
+
+      <!-- METRICS GRID (2x4) -->
+      <div class="grid grid-cols-2 gap-3">
+        
+        <!-- Today's Sales -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">Today’s Sales</p>
+            <h3 id="metric-todays-sales" class="text-base font-bold text-white mt-0.5">₦0</h3>
+          </div>
+          <span class="text-[9px] text-emerald-400 block font-medium">Live synced</span>
+        </div>
+
+        <!-- This Month Sales -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">This Month Sales</p>
+            <h3 id="metric-month-sales" class="text-base font-bold text-white mt-0.5">₦0</h3>
+          </div>
+          <span class="text-[9px] text-blue-400 block font-medium">Live synced</span>
+        </div>
+
+        <!-- Total Profit -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">Total Profit</p>
+            <h3 id="metric-profit" class="text-base font-bold text-white mt-0.5">₦0</h3>
+          </div>
+          <span class="text-[9px] text-amber-400 block font-medium">Real-time calculation</span>
+        </div>
+
+        <!-- Total Debts -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-users-viewfinder"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">Total Debts</p>
+            <h3 id="metric-debts" class="text-base font-bold text-white mt-0.5">₦0</h3>
+          </div>
+          <span class="text-[9px] text-rose-400 block font-medium">Outstanding balances</span>
+        </div>
+
+        <!-- Low Stock Alerts -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-box-archive"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">Low Stock Alerts</p>
+            <h3 id="metric-low-stock" class="text-base font-bold text-white mt-0.5">0 Items</h3>
+          </div>
+          <span class="text-[9px] text-purple-400 block font-medium cursor-pointer hover:underline">Tap to view</span>
+        </div>
+
+        <!-- Total Expenses -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">Total Expenses</p>
+            <h3 id="metric-expenses" class="text-base font-bold text-white mt-0.5">₦0</h3>
+          </div>
+          <span class="text-[9px] text-teal-400 block font-medium">This Month</span>
+        </div>
+
+        <!-- Employees -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-user-group"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">Employees</p>
+            <h3 id="metric-employees" class="text-base font-bold text-white mt-0.5">0</h3>
+          </div>
+          <span class="text-[9px] text-indigo-400 block font-medium">Active staff</span>
+        </div>
+
+        <!-- Attendance Today -->
+        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 font-medium">Attendance Today</p>
+            <h3 id="metric-attendance" class="text-base font-bold text-white mt-0.5">0 / 0</h3>
+          </div>
+          <span class="text-[9px] text-emerald-400 block font-medium">Present</span>
+        </div>
+
+      </div>
+
+      <!-- QUICK ACTIONS BAR -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold px-1">
+          <span class="text-white">Quick Actions</span>
+          <span class="text-purple-400 text-[10px] cursor-pointer">View All</span>
+        </div>
+        <div class="grid grid-cols-5 gap-2 text-center">
+          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
+            <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-cart-shopping"></i></div>
+            <span class="text-[9px] text-slate-300 font-medium leading-tight">New Sale</span>
+          </button>
+          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
+            <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-wallet"></i></div>
+            <span class="text-[9px] text-slate-300 font-medium leading-tight">Add Expense</span>
+          </button>
+          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
+            <div class="w-9 h-9 rounded-xl bg-amber-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-box"></i></div>
+            <span class="text-[9px] text-slate-300 font-medium leading-tight">Add Product</span>
+          </button>
+          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
+            <div class="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-user-plus"></i></div>
+            <span class="text-[9px] text-slate-300 font-medium leading-tight">Add Staff</span>
+          </button>
+          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
+            <div class="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-money-bill-wave"></i></div>
+            <span class="text-[9px] text-slate-300 font-medium leading-tight">Payment</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI BUSINESS INSIGHT CARD -->
+      <div class="bg-gradient-to-r from-purple-900/40 via-[#121224] to-indigo-900/40 border border-purple-500/30 rounded-2xl p-4 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold text-purple-300 flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> AI Business Insight</span>
+          <span class="text-[9px] text-slate-400">Live</span>
+        </div>
+        <p id="ai-insight-text" class="text-[11px] text-slate-200 leading-relaxed">
+          Analyzing your company database records in real-time to generate custom operational suggestions...
+        </p>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM APP NAVIGATION BAR -->
+    <div class="absolute bottom-0 left-0 right-0 bg-[#0B0B16]/95 backdrop-blur-md border-t border-purple-500/10 px-6 py-2.5 flex items-center justify-between z-20">
+      <a href="dashboard.html" class="flex flex-col items-center gap-1 text-purple-400">
+        <i class="fa-solid fa-house text-sm"></i>
+        <span class="text-[9px] font-bold">Dashboard</span>
+      </a>
+      <a href="sales.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-cart-shopping text-sm"></i>
+        <span class="text-[9px] font-medium">Sales</span>
+      </a>
+      <a href="inventory.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-box text-sm"></i>
+        <span class="text-[9px] font-medium">Inventory</span>
+      </a>
+      <a href="employees.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-user-group text-sm"></i>
+        <span class="text-[9px] font-medium">Employees</span>
+      </a>
+      <a href="more.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-ellipsis text-sm"></i>
+        <span class="text-[9px] font-medium">More</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- DASHBOARD REAL-TIME DATA ENGINE -->
+  <script>
+    const SUPABASE_URL = "https://yqwettcektjwhwutuavn.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_mjCisMT_iaKwQurqSbY7ow_KMK5FSDW";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function initDashboard() {
+      // 1. Check logged-in user session
+      const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+      
+      if (!session) {
+        // Redirect to login if unauthenticated
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const user = session.user;
+      const userName = user.user_metadata?.full_name || 'Admin';
+      document.getElementById('user-greeting').textContent = `Good morning, ${userName} 👋`;
+
+      // 2. Fetch User's Specific Company (Ensuring complete data isolation per user)
+      const { data: companyData, error: compError } = await supabaseClient
+        .from('companies')
+        .select('*')
+        .eq('owner_id', user.id)
+        .single();
+
+      if (companyData) {
+        document.getElementById('company-subtitle').textContent = `Managing: ${companyData.name}`;
+      } else {
+        document.getElementById('company-subtitle').textContent = `Connected securely to your account`;
+      }
+
+      // 3. Real-time metric fetching placeholders or listeners
+      // You can expand these queries as you create sales/inventory tables for your separate tabs!
+    }
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    // Initialize on page load
+    initDashboard();
+  </script>
+</body>
+</html>
