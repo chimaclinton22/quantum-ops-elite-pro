@@ -195,32 +195,18 @@
           if (!businessName) throw new Error('Please enter your Business Name.');
           if (!fullName) throw new Error('Please enter your Full Name.');
 
-          // 1. Create Supabase Auth User
+          // 1. Create Supabase Auth User with metadata containing the company name
           const { data: authData, error: authError } = await supabaseClient.auth.signUp({
             email,
             password,
-            options: { data: { full_name: fullName } }
+            options: { 
+              data: { 
+                full_name: fullName,
+                company_name: businessName
+              } 
+            }
           });
           if (authError) throw authError;
-
-          const user = authData.user;
-          if (user) {
-            // 2. Automatically create their Company record in Supabase
-            const { data: compData, error: compError } = await supabaseClient
-              .from('companies')
-              .insert([{ name: businessName, owner_id: user.id }])
-              .select()
-              .single();
-
-            if (compError) throw compError;
-
-            // 3. Link user to company_users join table
-            await supabaseClient.from('company_users').insert([{
-              company_id: compData.id,
-              user_id: user.id,
-              role: 'admin'
-            }]);
-          }
 
           alertBox.className = 'p-3 rounded-xl text-xs font-medium text-center bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
           alertBox.textContent = 'Account created successfully! Check your email for confirmation, or log in now.';
