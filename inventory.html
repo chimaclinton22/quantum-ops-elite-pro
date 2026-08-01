@@ -245,8 +245,8 @@
 
   <!-- APPLICATION LOGIC & REAL-TIME SYNC -->
   <script>
-    const SUPABASE_URL = "https://ptznejibslwmzlxzmsgh.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_eVTCV7q1AFmD76R9XX5Esg_3QwAcr32";
+    const SUPABASE_URL = "https://yqwettcektjwhwutuavn.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_mjCisMT_iaKwQurqSbY7ow_KMK5FSDW";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const LOW_STOCK_UNITS = 3;
@@ -347,7 +347,6 @@
     function triggerBarcodeScan() {
       const randomBarcode = 'SKU-' + Math.floor(100000 + Math.random() * 900000);
       document.getElementById('prod-sku').value = randomBarcode;
-      // Visual feedback for successful simulated camera/barcode recognition
       const skuInput = document.getElementById('prod-sku');
       skuInput.classList.add('border-emerald-500');
       setTimeout(() => skuInput.classList.remove('border-emerald-500'), 1500);
@@ -377,7 +376,6 @@
       document.getElementById('preview-units-pcs').textContent = `${formatUnits(units)} units = ${totalPieces.toLocaleString()} pcs`;
     }
 
-    // ===== SUPABASE AUTH & REAL-TIME WEBSOCKET SUBSCRIPTION =====
     async function initializeInventory() {
       try {
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -415,12 +413,10 @@
       filterProducts();
     }
 
-    // Real-Time Database Listener via Supabase Realtime Channel
     function setupRealtimeSubscription() {
       supabaseClient
         .channel('public:products')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
-          // Whenever an insert, update, or delete occurs anywhere, refresh instantly
           fetchProducts();
         })
         .subscribe();
