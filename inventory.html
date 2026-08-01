@@ -384,12 +384,10 @@
             .from('company_users')
             .select('company_id')
             .eq('user_id', user.id)
-            .maybeSingle();
+            .single();
 
-          if (memberData && memberData.company_id) {
+          if (memberData) {
             userCompanyId = memberData.company_id;
-          } else {
-            userCompanyId = 'NO_COMPANY_ASSIGNED';
           }
         }
         await fetchProducts();
@@ -400,20 +398,10 @@
     }
 
     async function fetchProducts() {
-      if (!userCompanyId) return;
-
       let query = supabaseClient.from('products').select('*').order('created_at', { ascending: false });
-      query = query.eq('company_id', userCompanyId);
-
-      const { data, error } = await query;
-      if (error) {
-        console.error("Error fetching products:", error);
-        return;
+      if (userCompanyId) {
+        query = query.eq('company_id', userCompanyId);
       }
-
-      allProducts = data || [];
-      filterProducts();
-    }
 
       const { data, error } = await query;
       if (error) {
