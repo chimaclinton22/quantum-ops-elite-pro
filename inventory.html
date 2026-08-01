@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum OPS Elite - Real-Time Inventory</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#07070F',
+              card: '#121224',
+              sidebar: '#0E0E1C',
+              purple: '#6C5CE7',
+              accent: '#8B5CF6'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #07070F; font-family: system-ui, -apple-system, sans-serif; color: #E2E8F0; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #2D2D48; border-radius: 4px; }
+    .iphone-frame {
+      width: 100%;
+      max-width: 410px;
+      height: 100vh;
+      max-height: 860px;
+      background: #0B0B16;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      box-shadow: 0 25px 50px -12px rgba(15, 13, 35, 0.7);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    @media (min-width: 768px) {
+      body { align-items: center; justify-content: center; display: flex; height: 100vh; }
+      .iphone-frame { border-radius: 48px; }
+    }
+
+    /* ===== ACTION MENU STYLING ===== */
+    .product-card { position: relative; }
+    .menu-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: #94a3b8;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .menu-btn:hover { background: rgba(139, 92, 246, 0.15); color: #fff; }
+    .action-menu {
+      position: absolute;
+      right: 8px;
+      top: 40px;
+      background: #1a1a2e;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      border-radius: 12px;
+      min-width: 140px;
+      z-index: 100;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      overflow: hidden;
+      display: none;
+    }
+    .action-menu.show { display: block; }
+    .action-menu button {
+      width: 100%;
+      text-align: left;
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .action-menu button:hover { background: rgba(139, 92, 246, 0.18); }
+    .action-menu button.delete-btn:hover { background: rgba(244, 63, 94, 0.18); color: #fb7185; }
+  </style>
+</head>
+<body>
+
+  <!-- MOBILE DEVICE FRAME CONTAINER -->
+  <div class="iphone-frame">
+    
+    <!-- TOP APP BAR -->
+    <div class="px-4 pt-4 pb-3 flex items-center justify-between bg-[#0B0B16]/90 backdrop-blur-md z-30 flex-shrink-0 border-b border-purple-500/10">
+      <div>
+        <h1 class="font-extrabold text-white text-base tracking-tight">All Products</h1>
+        <p class="text-[10px] text-slate-400" id="product-count-label">Connecting live...</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleSearch()" class="w-8 h-8 rounded-full bg-[#121224] border border-purple-500/20 flex items-center justify-center text-slate-300 hover:text-white transition">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </button>
+        <button onclick="openAddProductModal()" class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white shadow-md shadow-purple-900/50 hover:bg-purple-500 transition">
+          <i class="fa-solid fa-plus text-xs"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- HIDDEN SEARCH BAR -->
+    <div id="search-container" class="px-4 py-2 bg-[#0E0E1C] hidden border-b border-purple-500/10">
+      <input type="text" id="search-input" oninput="filterProducts()" placeholder="Search product name or SKU..." class="w-full bg-[#16162d] border border-purple-500/20 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500">
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="px-4 py-2.5 flex items-center gap-2 overflow-x-auto custom-scrollbar flex-shrink-0 bg-[#0B0B16]/90">
+      <button onclick="setFilter('all', this)" class="filter-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-600 text-white transition flex-shrink-0 shadow-sm">All</button>
+      <button onclick="setFilter('instock', this)" class="filter-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#121224] text-slate-400 border border-purple-500/15 hover:text-white transition flex-shrink-0">In Stock</button>
+      <button onclick="setFilter('lowstock', this)" class="filter-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#121224] text-slate-400 border border-purple-500/15 hover:text-white transition flex-shrink-0">Low Stock</button>
+      <button onclick="setFilter('outofstock', this)" class="filter-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#121224] text-slate-400 border border-purple-500/15 hover:text-white transition flex-shrink-0">Out of Stock</button>
+    </div>
+
+    <!-- MAIN SCROLLABLE VIEWPORT -->
+    <div class="flex-1 overflow-y-auto px-4 py-2 space-y-3 custom-scrollbar pb-24" id="products-list-container">
+      <div class="text-center py-16 text-slate-500 text-xs">Synchronizing database inventory...</div>
+    </div>
+
+    <!-- BOTTOM FLOATING NAVIGATION BAR -->
+    <nav class="absolute bottom-0 left-0 right-0 h-16 bg-[#0E0E1C]/95 backdrop-blur-xl border-t border-purple-500/15 px-6 flex items-center justify-between z-40">
+      <a href="dashboard.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-gauge-high text-sm"></i>
+        <span class="text-[9px] font-medium">Dashboard</span>
+      </a>
+      <a href="inventory.html" class="flex flex-col items-center gap-1 text-purple-400 transition">
+        <i class="fa-solid fa-boxes-stacked text-sm"></i>
+        <span class="text-[9px] font-medium">Inventory</span>
+      </a>
+      <a href="pos.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-cash-register text-sm"></i>
+        <span class="text-[9px] font-medium">POS Sales</span>
+      </a>
+      <a href="ai-ceo.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-robot text-sm"></i>
+        <span class="text-[9px] font-medium">AI CEO</span>
+      </a>
+    </nav>
+
+  </div>
+
+  <!-- ADD / EDIT PRODUCT MODAL -->
+  <div id="product-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-sm max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#121224] border border-purple-500/30 rounded-3xl p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white" id="modal-title">
+          <i class="fa-solid fa-box text-purple-400 mr-2"></i>Add New Product
+        </h3>
+        <button onclick="closeProductModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <!-- Product Photo Upload & Recognition Preview -->
+        <div>
+          <label class="text-[10px] text-slate-400 font-medium">Product Photo Recognition</label>
+          <div class="mt-1 flex items-center gap-3 bg-[#191932] border border-purple-500/20 rounded-xl p-2">
+            <div id="photo-preview-box" class="w-12 h-12 rounded-lg bg-purple-950/40 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xs overflow-hidden flex-shrink-0">
+              <i class="fa-solid fa-image"></i>
+            </div>
+            <div class="flex-1">
+              <input type="file" id="product-image-file" accept="image/*" onchange="previewImage(event)" class="w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-500">
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] text-slate-400 font-medium">Product Name *</label>
+          <input type="text" id="prod-name" placeholder="e.g. Coca Cola" class="w-full mt-1 bg-[#191932] border border-purple-500/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+        </div>
+
+        <div>
+          <label class="text-[10px] text-slate-400 font-medium">Barcode / SKU Recognition (Optional)</label>
+          <div class="relative mt-1">
+            <input type="text" id="prod-sku" placeholder="e.g., 123456789 or scan barcode" class="w-full bg-[#191932] border border-purple-500/20 rounded-xl pl-3 pr-10 py-2 text-white focus:outline-none focus:border-purple-500">
+            <button type="button" onclick="triggerBarcodeScan()" class="absolute right-2.5 top-2 text-purple-400 hover:text-purple-300">
+              <i class="fa-solid fa-camera text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] text-slate-400 font-medium">Pieces Per Unit *</label>
+            <input type="number" id="prod-pack" value="24" min="1" oninput="calculateUnitCost(); updatePreviewUnits()" class="w-full mt-1 bg-[#191932] border border-purple-500/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 font-medium">Bulk Cost Price (₦)</label>
+            <input type="number" id="prod-bulk-cost" placeholder="0" oninput="calculateUnitCost()" class="w-full mt-1 bg-[#191932] border border-purple-500/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] text-slate-400 font-medium">Single Unit Cost (₦)</label>
+            <input type="number" id="prod-unit-cost" placeholder="Auto" readonly class="w-full mt-1 bg-[#15152a] text-slate-400 border border-purple-500/10 rounded-xl px-3 py-2 focus:outline-none cursor-not-allowed">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 font-medium">Selling Price (₦) *</label>
+            <input type="number" id="prod-selling" placeholder="e.g. 700" oninput="calculateProfit()" class="w-full mt-1 bg-[#191932] border border-purple-500/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] text-slate-400 font-medium">Number of Units *</label>
+            <input type="number" id="prod-units" value="5" min="0" step="any" oninput="updatePreviewUnits()" class="w-full mt-1 bg-[#191932] border border-purple-500/20 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 font-medium">Expected Profit / Piece</label>
+            <input type="text" id="prod-expected-profit" value="₦0" readonly class="w-full mt-1 bg-[#15152a] text-emerald-400 font-bold border border-purple-500/10 rounded-xl px-3 py-2 focus:outline-none cursor-not-allowed">
+          </div>
+        </div>
+
+        <!-- Live preview -->
+        <div class="bg-purple-950/30 border border-purple-500/20 rounded-xl px-3 py-2 text-[11px] text-purple-200">
+          <span class="text-slate-400">Will store:</span>
+          <span id="preview-units-pcs" class="font-semibold text-white ml-1">5 units = 120 pcs</span>
+        </div>
+
+        <button id="save-product-btn" onclick="submitProduct()" class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl text-white font-bold text-xs shadow-lg shadow-purple-600/30 hover:opacity-95 transition">
+          Save Product to Database
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC & REAL-TIME SYNC -->
+  <script>
+    const SUPABASE_URL = "https://ptznejibslwmzlxzmsgh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_eVTCV7q1AFmD76R9XX5Esg_3QwAcr32";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const LOW_STOCK_UNITS = 3;
+
+    let userCompanyId = null;
+    let allProducts = [];
+    let currentFilter = 'all';
+    let uploadedImageBase64 = '';
+    let editingProductId = null;
+
+    function formatCurrency(amount) {
+      return '₦' + Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+
+    function formatUnits(value) {
+      const num = Number(value);
+      if (isNaN(num)) return 0;
+      return Number.isInteger(num) ? num : parseFloat(num.toFixed(2));
+    }
+
+    function toggleSearch() {
+      const container = document.getElementById('search-container');
+      container.classList.toggle('hidden');
+      if (!container.classList.contains('hidden')) {
+        document.getElementById('search-input').focus();
+      }
+    }
+
+    function openAddProductModal() {
+      editingProductId = null;
+      document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-box text-purple-400 mr-2"></i>Add New Product';
+      document.getElementById('save-product-btn').textContent = 'Save Product to Database';
+      clearForm();
+      document.getElementById('product-modal').classList.remove('hidden');
+      updatePreviewUnits();
+    }
+
+    function openEditProductModal(product) {
+      editingProductId = product.id;
+      document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-purple-400 mr-2"></i>Edit Product';
+      document.getElementById('save-product-btn').textContent = 'Update Product Database';
+
+      document.getElementById('prod-name').value = product.name || '';
+      document.getElementById('prod-sku').value = product.sku || '';
+      document.getElementById('prod-pack').value = product.items_per_pack || 24;
+      document.getElementById('prod-bulk-cost').value = product.bulk_cost || '';
+      document.getElementById('prod-unit-cost').value = product.unit_cost || '';
+      document.getElementById('prod-selling').value = product.selling_price || '';
+
+      const pieces = parseFloat(product.stock || 0);
+      const pack = parseFloat(product.items_per_pack || 24) || 24;
+      document.getElementById('prod-units').value = formatUnits(pieces / pack);
+
+      uploadedImageBase64 = product.image_url || '';
+      if (uploadedImageBase64) {
+        document.getElementById('photo-preview-box').innerHTML = `<img src="${uploadedImageBase64}" class="w-full h-full object-cover">`;
+      } else {
+        document.getElementById('photo-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
+      }
+
+      calculateUnitCost();
+      calculateProfit();
+      updatePreviewUnits();
+      document.getElementById('product-modal').classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      document.getElementById('product-modal').classList.add('hidden');
+      editingProductId = null;
+    }
+
+    function clearForm() {
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-sku').value = '';
+      document.getElementById('prod-pack').value = '24';
+      document.getElementById('prod-bulk-cost').value = '';
+      document.getElementById('prod-unit-cost').value = '';
+      document.getElementById('prod-selling').value = '';
+      document.getElementById('prod-units').value = '5';
+      document.getElementById('prod-expected-profit').value = '₦0';
+      uploadedImageBase64 = '';
+      document.getElementById('photo-preview-box').innerHTML = `<i class="fa-solid fa-image"></i>`;
+      document.getElementById('product-image-file').value = '';
+    }
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          uploadedImageBase64 = e.target.result;
+          document.getElementById('photo-preview-box').innerHTML = `<img src="${uploadedImageBase64}" class="w-full h-full object-cover">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function triggerBarcodeScan() {
+      const randomBarcode = 'SKU-' + Math.floor(100000 + Math.random() * 900000);
+      document.getElementById('prod-sku').value = randomBarcode;
+      // Visual feedback for successful simulated camera/barcode recognition
+      const skuInput = document.getElementById('prod-sku');
+      skuInput.classList.add('border-emerald-500');
+      setTimeout(() => skuInput.classList.remove('border-emerald-500'), 1500);
+    }
+
+    function calculateUnitCost() {
+      const pack = parseFloat(document.getElementById('prod-pack').value) || 1;
+      const bulkCost = parseFloat(document.getElementById('prod-bulk-cost').value) || 0;
+      const unitCost = bulkCost / pack;
+      document.getElementById('prod-unit-cost').value = unitCost.toFixed(2);
+      calculateProfit();
+    }
+
+    function calculateProfit() {
+      const unitCost = parseFloat(document.getElementById('prod-unit-cost').value) || 0;
+      const sellingPrice = parseFloat(document.getElementById('prod-selling').value) || 0;
+      const profit = sellingPrice - unitCost;
+      const profitField = document.getElementById('prod-expected-profit');
+      profitField.value = formatCurrency(profit);
+      profitField.className = `w-full mt-1 bg-[#15152a] font-bold border border-purple-500/10 rounded-xl px-3 py-2 focus:outline-none cursor-not-allowed ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+    }
+
+    function updatePreviewUnits() {
+      const units = parseFloat(document.getElementById('prod-units').value) || 0;
+      const pack = parseFloat(document.getElementById('prod-pack').value) || 1;
+      const totalPieces = Math.round(units * pack);
+      document.getElementById('preview-units-pcs').textContent = `${formatUnits(units)} units = ${totalPieces.toLocaleString()} pcs`;
+    }
+
+    // ===== SUPABASE AUTH & REAL-TIME WEBSOCKET SUBSCRIPTION =====
+    async function initializeInventory() {
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+          const { data: memberData } = await supabaseClient
+            .from('company_users')
+            .select('company_id')
+            .eq('user_id', user.id)
+            .single();
+
+          if (memberData) {
+            userCompanyId = memberData.company_id;
+          }
+        }
+        await fetchProducts();
+        setupRealtimeSubscription();
+      } catch (err) {
+        console.error("Initialization error:", err);
+      }
+    }
+
+    async function fetchProducts() {
+      let query = supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+      if (userCompanyId) {
+        query = query.eq('company_id', userCompanyId);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("Error fetching products:", error);
+        return;
+      }
+
+      allProducts = data || [];
+      filterProducts();
+    }
+
+    // Real-Time Database Listener via Supabase Realtime Channel
+    function setupRealtimeSubscription() {
+      supabaseClient
+        .channel('public:products')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
+          // Whenever an insert, update, or delete occurs anywhere, refresh instantly
+          fetchProducts();
+        })
+        .subscribe();
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(b => {
+        b.className = "filter-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#121224] text-slate-400 border border-purple-500/15 hover:text-white transition flex-shrink-0";
+      });
+      btn.className = "filter-tab px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-600 text-white transition flex-shrink-0 shadow-sm";
+      filterProducts();
+    }
+
+    function filterProducts() {
+      const keyword = (document.getElementById('search-input')?.value || '').toLowerCase();
+      
+      const filtered = allProducts.filter(p => {
+        const nameMatch = (p.name || '').toLowerCase().includes(keyword) || 
+                          (p.sku && p.sku.toLowerCase().includes(keyword));
+        if (!nameMatch) return false;
+
+        const totalPieces = parseFloat(p.stock || 0);
+        const piecesPerUnit = parseFloat(p.items_per_pack || 24) || 24;
+        const remainingUnits = totalPieces / piecesPerUnit;
+
+        if (currentFilter === 'instock') return remainingUnits > LOW_STOCK_UNITS;
+        if (currentFilter === 'lowstock') return remainingUnits > 0 && remainingUnits <= LOW_STOCK_UNITS;
+        if (currentFilter === 'outofstock') return totalPieces === 0;
+        return true;
+      });
+
+      renderProducts(filtered);
+    }
+
+    function getStockStatus(totalPieces, piecesPerUnit) {
+      const remainingUnits = totalPieces / (piecesPerUnit || 1);
+
+      if (totalPieces === 0) {
+        return {
+          badgeBg: 'bg-rose-950/50 text-rose-400 border-rose-500/30',
+          badgeText: 'Out of Stock'
+        };
+      }
+      if (remainingUnits <= LOW_STOCK_UNITS) {
+        return {
+          badgeBg: 'bg-amber-950/50 text-amber-400 border-amber-500/30',
+          badgeText: 'Low Stock'
+        };
+      }
+      return {
+        badgeBg: 'bg-emerald-950/50 text-emerald-400 border-emerald-500/30',
+        badgeText: 'In Stock'
+      };
+    }
+
+    function renderProducts(products) {
+      const container = document.getElementById('products-list-container');
+      document.getElementById('product-count-label').textContent = `${products.length} products synced`;
+
+      if (products.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 bg-[#121224] border border-purple-500/10 rounded-2xl space-y-2">
+            <i class="fa-solid fa-boxes-stacked text-purple-400 text-2xl"></i>
+            <p class="text-slate-300 text-xs font-medium">No products found</p>
+            <p class="text-slate-500 text-[10px]">Tap the '+' button above to add your first live product.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      products.forEach(p => {
+        const totalPieces = parseFloat(p.stock || 0);
+        const piecesPerUnit = parseFloat(p.items_per_pack || 24) || 24;
+        const remainingUnits = totalPieces / piecesPerUnit;
+        const displayUnits = formatUnits(remainingUnits);
+
+        const status = getStockStatus(totalPieces, piecesPerUnit);
+
+        const cost = parseFloat(p.unit_cost || 0);
+        const price = parseFloat(p.selling_price || 0);
+        const profit = price - cost;
+        const imgUrl = p.image_url || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150';
+
+        const safeName = (p.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+        html += `
+          <div class="product-card bg-[#121224] border border-purple-500/15 p-3.5 rounded-2xl shadow-xl">
+            <div class="flex items-start gap-3">
+              <img src="${imgUrl}" class="w-14 h-14 rounded-xl object-cover bg-purple-950/30 border border-purple-500/20 flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150'">
+              
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-white text-xs truncate">${p.name || 'Unnamed'}</h4>
+                    <p class="text-[10px] text-slate-400 mt-0.5">SKU: ${p.sku || 'N/A'}</p>
+                  </div>
+                  
+                  <button class="menu-btn flex-shrink-0" onclick="toggleActionMenu(event, '${p.id}')">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-2 flex-wrap mt-1.5">
+                  <span class="px-2 py-0.5 rounded-md text-[9px] font-semibold border ${status.badgeBg}">${status.badgeText}</span>
+                  <span class="text-[10px] text-slate-300 font-medium">
+                    ${displayUnits} units = <span class="text-white font-bold">${totalPieces.toLocaleString()} pcs</span>
+                  </span>
+                </div>
+
+                <div class="flex items-center justify-between mt-2">
+                  <div class="text-[10px] text-slate-400">
+                    Cost: ${formatCurrency(cost)}
+                  </div>
+                  <div class="text-right">
+                    <div class="font-extrabold text-white text-xs">${formatCurrency(price)}</div>
+                    <div class="text-[10px] font-semibold ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">Profit: ${formatCurrency(profit)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- DROPDOWN MENU -->
+            <div id="menu-${p.id}" class="action-menu">
+              <button onclick="editProduct('${p.id}')">
+                <i class="fa-solid fa-pen text-purple-400"></i> Edit Product
+              </button>
+              <button class="delete-btn" onclick="deleteProduct('${p.id}', '${safeName}')">
+                <i class="fa-solid fa-trash"></i> Delete Product
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.menu-btn') && !e.target.closest('.action-menu')) {
+        document.querySelectorAll('.action-menu').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    function toggleActionMenu(event, productId) {
+      event.stopPropagation();
+      document.querySelectorAll('.action-menu').forEach(m => {
+        if (m.id !== `menu-${productId}`) m.classList.remove('show');
+      });
+
+      const menu = document.getElementById(`menu-${productId}`);
+      if (menu) {
+        menu.classList.toggle('show');
+      }
+    }
+
+    function editProduct(productId) {
+      document.querySelectorAll('.action-menu').forEach(m => m.classList.remove('show'));
+      const product = allProducts.find(p => p.id === productId);
+      if (product) openEditProductModal(product);
+    }
+
+    async function deleteProduct(productId, productName) {
+      document.querySelectorAll('.action-menu').forEach(m => m.classList.remove('show'));
+
+      const confirmed = confirm(`Are you sure you want to delete "${productName}" from the database?\n\nThis action cannot be undone.`);
+      if (!confirmed) return;
+
+      const { error } = await supabaseClient
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) {
+        alert('Failed to delete product: ' + error.message);
+        return;
+      }
+    }
+
+    async function submitProduct() {
+      const name = document.getElementById('prod-name').value.trim();
+      const sku = document.getElementById('prod-sku').value.trim();
+      const pack = parseFloat(document.getElementById('prod-pack').value) || 1;
+      const unitCost = parseFloat(document.getElementById('prod-unit-cost').value) || 0;
+      const bulkCost = parseFloat(document.getElementById('prod-bulk-cost').value) || 0;
+      const sellingPrice = parseFloat(document.getElementById('prod-selling').value) || 0;
+      const units = parseFloat(document.getElementById('prod-units').value) || 0;
+
+      const totalPieces = Math.round(units * pack);
+
+      if (!name) {
+        alert('Please enter the Product Name.');
+        return;
+      }
+      if (!sellingPrice || sellingPrice <= 0) {
+        alert('Please enter a valid Selling Price.');
+        return;
+      }
+      if (pack < 1) {
+        alert('Pieces per unit must be at least 1.');
+        return;
+      }
+
+      const payload = {
+        company_id: userCompanyId,
+        name: name,
+        sku: sku || 'SKU-' + Math.floor(100000 + Math.random() * 900000),
+        items_per_pack: pack,
+        bulk_cost: bulkCost,
+        unit_cost: unitCost,
+        selling_price: sellingPrice,
+        stock: totalPieces,
+        image_url: uploadedImageBase64 || null
+      };
+
+      const btn = document.getElementById('save-product-btn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = editingProductId ? 'Updating Database...' : 'Saving to Database...';
+
+      let error;
+      if (editingProductId) {
+        const result = await supabaseClient
+          .from('products')
+          .update(payload)
+          .eq('id', editingProductId);
+        error = result.error;
+      } else {
+        const result = await supabaseClient
+          .from('products')
+          .insert([payload]);
+        error = result.error;
+      }
+
+      btn.disabled = false;
+      btn.textContent = originalText;
+
+      if (error) {
+        alert('Error saving product: ' + error.message);
+        return;
+      }
+
+      closeProductModal();
+      clearForm();
+    }
+
+    window.addEventListener('DOMContentLoaded', initializeInventory);
+  </script>
+</body>
+</html>
