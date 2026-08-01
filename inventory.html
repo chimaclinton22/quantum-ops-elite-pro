@@ -403,13 +403,17 @@
       if (!userCompanyId) return;
 
       let query = supabaseClient.from('products').select('*').order('created_at', { ascending: false });
-      
-      // Strict Company Multi-Tenant Partition Filter
-      if (userCompanyId !== 'NO_COMPANY_ASSIGNED') {
-        query = query.eq('company_id', userCompanyId);
-      } else {
-        query = query.eq('company_id', '00000000-0000-0000-0000-000000000000'); // Returns empty for unassigned accounts
+      query = query.eq('company_id', userCompanyId);
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("Error fetching products:", error);
+        return;
       }
+
+      allProducts = data || [];
+      filterProducts();
+    }
 
       const { data, error } = await query;
       if (error) {
@@ -606,11 +610,6 @@
     }
 
     async function submitProduct() {
-      if (!userCompanyId || userCompanyId === 'NO_COMPANY_ASSIGNED') {
-        alert('Error: Your account is not assigned to a company workspace.');
-        return;
-      }
-
       const name = document.getElementById('prod-name').value.trim();
       const sku = document.getElementById('prod-sku').value.trim();
       const pack = parseFloat(document.getElementById('prod-pack').value) || 1;
