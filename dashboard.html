@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quantum OPS Elite - Dashboard</title>
+  <title>Quantum Ops Elite - Dashboard</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -33,12 +33,11 @@
       width: 100%;
       max-width: 410px;
       height: 100vh;
-      max-height: 860px;
+      max-height: 890px;
       background: #0B0B16;
       border: 1px solid rgba(139, 92, 246, 0.2);
       box-shadow: 0 25px 50px -12px rgba(15, 13, 35, 0.7);
       position: relative;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
@@ -46,234 +45,317 @@
       body { align-items: center; justify-content: center; display: flex; height: 100vh; }
       .iphone-frame { border-radius: 48px; }
     }
-    /* Hide scrollbar for clean UI look */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Custom Scrollbar for dashboard body */
+    .dashboard-scroll::-webkit-scrollbar { width: 4px; }
+    .dashboard-scroll::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.2); border-radius: 4px; }
   </style>
 </head>
 <body>
 
   <!-- MOBILE DEVICE FRAME CONTAINER -->
-  <div class="iphone-frame flex flex-col justify-between">
+  <div class="iphone-frame overflow-hidden">
     
-    <!-- TOP APP BAR -->
-    <div class="flex items-center justify-between px-5 pt-4 pb-2 border-b border-purple-500/10 bg-[#0B0B16] z-10">
-      <button onclick="toggleSidebar()" class="text-slate-300 hover:text-white text-lg">
-        <i class="fa-solid fa-bars"></i>
-      </button>
+    <!-- TOP NAVIGATION BAR -->
+    <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-purple-500/10 bg-[#0B0B16] z-10">
+      <!-- Hamburger Menu -->
+      <button class="text-slate-300 hover:text-white text-lg"><i class="fa-solid fa-bars"></i></button>
+      
+      <!-- Logo & Title -->
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
-          <i class="fa-solid fa-crown text-[10px] text-amber-300 absolute -top-1"></i>
-          Q
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-purple-600/30">
+          <span style="font-size: 14px;">👑</span>Q
         </div>
-        <span class="font-bold tracking-wide text-xs text-white">Quantum <span class="text-purple-400">Ops Elite</span></span>
+        <span class="font-bold tracking-wide text-xs text-white">Quantum Ops Elite</span>
       </div>
+
+      <!-- Notification & Profile -->
       <div class="flex items-center gap-3">
-        <button class="relative text-slate-300 hover:text-white">
-          <i class="fa-regular fa-bell text-base"></i>
-          <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">3</span>
-        </button>
-        <button onclick="handleLogout()" class="w-8 h-8 rounded-full bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-300 text-xs font-bold">
-          <i class="fa-regular fa-user"></i>
+        <div class="relative">
+          <button class="text-slate-300 hover:text-white text-base"><i class="fa-regular fa-bell"></i></button>
+          <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+        </div>
+        <button id="profile-avatar-btn" class="w-8 h-8 rounded-full bg-slate-800 border border-purple-500/30 flex items-center justify-center text-slate-300 text-xs font-bold">
+          <i class="fa-solid fa-user"></i>
         </button>
       </div>
     </div>
 
-    <!-- MAIN SCROLLABLE CONTENT AREA -->
-    <div class="flex-1 overflow-y-auto no-scrollbar px-4 py-4 space-y-4 pb-24">
+    <!-- SCROLLABLE DASHBOARD CONTENT -->
+    <div class="dashboard-scroll flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-24">
       
       <!-- GREETING & AI ASSISTANT BANNER -->
-      <div class="flex items-center justify-between bg-[#121224] border border-purple-500/20 rounded-2xl p-4 shadow-lg">
+      <div class="flex items-center justify-between gap-3 bg-[#121224] border border-purple-500/15 rounded-2xl p-4">
         <div>
-          <h2 id="user-greeting" class="text-sm font-bold text-white">Good morning, Admin 👋</h2>
-          <p id="company-subtitle" class="text-[11px] text-slate-400 mt-0.5">Loading your business metrics...</p>
+          <h1 id="greeting-title" class="text-sm font-bold text-white">Good morning, Admin 👋</h1>
+          <p class="text-[11px] text-slate-400 mt-0.5">Here's what's happening in your business today.</p>
         </div>
-        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-2 rounded-xl text-center shadow-md cursor-pointer hover:opacity-95 transition">
-          <i class="fa-solid fa-robot text-white text-xs block mb-0.5"></i>
-          <span class="text-[9px] font-bold text-white block">AI Assistant</span>
-        </div>
+        <button class="bg-gradient-to-r from-purple-600 to-indigo-600 px-3.5 py-2.5 rounded-xl text-white flex items-center gap-2 shadow-lg shadow-purple-600/20 shrink-0 hover:opacity-95 transition">
+          <div class="text-base">🤖</div>
+          <div class="text-left">
+            <p class="text-[10px] font-bold leading-tight">AI Assistant</p>
+            <p class="text-[9px] text-purple-200 leading-tight">Ask anything</p>
+          </div>
+          <i class="fa-solid fa-chevron-right text-[10px] text-purple-300 ml-1"></i>
+        </button>
       </div>
 
-      <!-- METRICS GRID (2x4) -->
+      <!-- METRICS GRID (2 Columns x 4 Rows = 8 Cards) -->
       <div class="grid grid-cols-2 gap-3">
         
-        <!-- Today's Sales -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-arrow-trend-up"></i>
+        <!-- 1. Today's Sales -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-bag-shopping"></i>
+            </div>
           </div>
           <div>
-            <p class="text-[10px] text-slate-400 font-medium">Today’s Sales</p>
-            <h3 id="metric-todays-sales" class="text-base font-bold text-white mt-0.5">₦0</h3>
+            <p class="text-[10px] text-slate-400 font-medium">Today's Sales</p>
+            <h2 id="stat-todays-sales" class="text-base font-bold text-white mt-0.5">₦0</h2>
           </div>
-          <span class="text-[9px] text-emerald-400 block font-medium">Live synced</span>
+          <p id="stat-todays-sales-sub" class="text-[9px] text-emerald-400 font-medium flex items-center gap-1">
+            <i class="fa-solid fa-arrow-trend-up text-[8px]"></i> 0% from yesterday
+          </p>
         </div>
 
-        <!-- This Month Sales -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-chart-pie"></i>
+        <!-- 2. This Month Sales -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-chart-column"></i>
+            </div>
           </div>
           <div>
             <p class="text-[10px] text-slate-400 font-medium">This Month Sales</p>
-            <h3 id="metric-month-sales" class="text-base font-bold text-white mt-0.5">₦0</h3>
+            <h2 id="stat-month-sales" class="text-base font-bold text-white mt-0.5">₦0</h2>
           </div>
-          <span class="text-[9px] text-blue-400 block font-medium">Live synced</span>
+          <p id="stat-month-sales-sub" class="text-[9px] text-blue-400 font-medium flex items-center gap-1">
+            <i class="fa-solid fa-arrow-trend-up text-[8px]"></i> 0% from last month
+          </p>
         </div>
 
-        <!-- Total Profit -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-wallet"></i>
+        <!-- 3. Total Profit -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
           </div>
           <div>
             <p class="text-[10px] text-slate-400 font-medium">Total Profit</p>
-            <h3 id="metric-profit" class="text-base font-bold text-white mt-0.5">₦0</h3>
+            <h2 id="stat-total-profit" class="text-base font-bold text-white mt-0.5">₦0</h2>
           </div>
-          <span class="text-[9px] text-amber-400 block font-medium">Real-time calculation</span>
+          <p id="stat-total-profit-sub" class="text-[9px] text-amber-400 font-medium flex items-center gap-1">
+            <i class="fa-solid fa-arrow-trend-up text-[8px]"></i> 0% from last month
+          </p>
         </div>
 
-        <!-- Total Debts -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-users-viewfinder"></i>
+        <!-- 4. Total Debts -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-users"></i>
+            </div>
           </div>
           <div>
             <p class="text-[10px] text-slate-400 font-medium">Total Debts</p>
-            <h3 id="metric-debts" class="text-base font-bold text-white mt-0.5">₦0</h3>
+            <h2 id="stat-total-debts" class="text-base font-bold text-white mt-0.5">₦0</h2>
           </div>
-          <span class="text-[9px] text-rose-400 block font-medium">Outstanding balances</span>
+          <p id="stat-overdue-debts" class="text-[9px] text-rose-400 font-medium">Overdue: ₦0</p>
         </div>
 
-        <!-- Low Stock Alerts -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-box-archive"></i>
+        <!-- 5. Low Stock Alerts -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-box"></i>
+            </div>
           </div>
           <div>
             <p class="text-[10px] text-slate-400 font-medium">Low Stock Alerts</p>
-            <h3 id="metric-low-stock" class="text-base font-bold text-white mt-0.5">0 Items</h3>
+            <h2 id="stat-low-stock" class="text-base font-bold text-white mt-0.5">0 Items</h2>
           </div>
-          <span class="text-[9px] text-purple-400 block font-medium cursor-pointer hover:underline">Tap to view</span>
+          <button onclick="window.location.href='inventory.html'" class="text-[9px] text-purple-400 font-semibold hover:underline text-left">Tap to view</button>
         </div>
 
-        <!-- Total Expenses -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-receipt"></i>
+        <!-- 6. Total Expenses -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-receipt"></i>
+            </div>
           </div>
           <div>
             <p class="text-[10px] text-slate-400 font-medium">Total Expenses</p>
-            <h3 id="metric-expenses" class="text-base font-bold text-white mt-0.5">₦0</h3>
+            <h2 id="stat-total-expenses" class="text-base font-bold text-white mt-0.5">₦0</h2>
           </div>
-          <span class="text-[9px] text-teal-400 block font-medium">This Month</span>
+          <p class="text-[9px] text-slate-400 font-medium">This Month</p>
         </div>
 
-        <!-- Employees -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-user-group"></i>
+        <!-- 7. Employees -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-user-group"></i>
+            </div>
           </div>
           <div>
             <p class="text-[10px] text-slate-400 font-medium">Employees</p>
-            <h3 id="metric-employees" class="text-base font-bold text-white mt-0.5">0</h3>
+            <h2 id="stat-employees-count" class="text-base font-bold text-white mt-0.5">0</h2>
           </div>
-          <span class="text-[9px] text-indigo-400 block font-medium">Active staff</span>
+          <p class="text-[9px] text-indigo-400 font-medium">Active Employees</p>
         </div>
 
-        <!-- Attendance Today -->
-        <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-3.5 space-y-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
-            <i class="fa-solid fa-user-check"></i>
+        <!-- 8. Attendance Today -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
           </div>
           <div>
             <p class="text-[10px] text-slate-400 font-medium">Attendance Today</p>
-            <h3 id="metric-attendance" class="text-base font-bold text-white mt-0.5">0 / 0</h3>
+            <h2 id="stat-attendance" class="text-base font-bold text-white mt-0.5">0 / 0</h2>
           </div>
-          <span class="text-[9px] text-emerald-400 block font-medium">Present</span>
+          <p class="text-[9px] text-emerald-400 font-medium">Present</p>
         </div>
 
       </div>
 
-      <!-- QUICK ACTIONS BAR -->
-      <div class="space-y-2">
-        <div class="flex items-center justify-between text-xs font-bold px-1">
-          <span class="text-white">Quick Actions</span>
-          <span class="text-purple-400 text-[10px] cursor-pointer">View All</span>
+      <!-- QUICK ACTIONS SECTION -->
+      <div class="space-y-2.5 pt-1">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-white">Quick Actions</h3>
+          <button class="text-[11px] text-purple-400 font-semibold hover:underline flex items-center gap-1">View All <i class="fa-solid fa-chevron-right text-[9px]"></i></button>
         </div>
         <div class="grid grid-cols-5 gap-2 text-center">
-          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
-            <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-cart-shopping"></i></div>
-            <span class="text-[9px] text-slate-300 font-medium leading-tight">New Sale</span>
+          <!-- New Sale -->
+          <button onclick="window.location.href='sales.html'" class="flex flex-col items-center gap-1.5 group">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg shadow-lg shadow-emerald-600/30 group-hover:scale-95 transition">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <span class="text-[10px] font-medium text-slate-300 leading-tight">New Sale</span>
           </button>
-          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
-            <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-wallet"></i></div>
-            <span class="text-[9px] text-slate-300 font-medium leading-tight">Add Expense</span>
+          <!-- Add Expense -->
+          <button onclick="window.location.href='expenses.html'" class="flex flex-col items-center gap-1.5 group">
+            <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-lg shadow-blue-600/30 group-hover:scale-95 transition">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+            <span class="text-[10px] font-medium text-slate-300 leading-tight">Add Expense</span>
           </button>
-          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
-            <div class="w-9 h-9 rounded-xl bg-amber-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-box"></i></div>
-            <span class="text-[9px] text-slate-300 font-medium leading-tight">Add Product</span>
+          <!-- Add Product -->
+          <button onclick="window.location.href='inventory.html'" class="flex flex-col items-center gap-1.5 group">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-500/30 group-hover:scale-95 transition">
+              <i class="fa-solid fa-box"></i>
+            </div>
+            <span class="text-[10px] font-medium text-slate-300 leading-tight">Add Product</span>
           </button>
-          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
-            <div class="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-user-plus"></i></div>
-            <span class="text-[9px] text-slate-300 font-medium leading-tight">Add Staff</span>
+          <!-- Add Employee -->
+          <button onclick="window.location.href='employees.html'" class="flex flex-col items-center gap-1.5 group">
+            <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-lg shadow-purple-600/30 group-hover:scale-95 transition">
+              <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <span class="text-[10px] font-medium text-slate-300 leading-tight">Add Employee</span>
           </button>
-          <button class="bg-[#121224] border border-purple-500/15 p-2.5 rounded-xl hover:border-purple-500 transition flex flex-col items-center gap-1.5">
-            <div class="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center text-white text-xs shadow-md"><i class="fa-solid fa-money-bill-wave"></i></div>
-            <span class="text-[9px] text-slate-300 font-medium leading-tight">Payment</span>
+          <!-- Record Payment -->
+          <button onclick="window.location.href='payments.html'" class="flex flex-col items-center gap-1.5 group">
+            <div class="w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-lg shadow-lg shadow-rose-500/30 group-hover:scale-95 transition">
+              <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+            <span class="text-[10px] font-medium text-slate-300 leading-tight">Record Payment</span>
           </button>
         </div>
       </div>
 
-      <!-- AI BUSINESS INSIGHT CARD -->
-      <div class="bg-gradient-to-r from-purple-900/40 via-[#121224] to-indigo-900/40 border border-purple-500/30 rounded-2xl p-4 relative overflow-hidden">
-        <div class="flex items-center justify-between mb-1.5">
-          <span class="text-[11px] font-bold text-purple-300 flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> AI Business Insight</span>
-          <span class="text-[9px] text-slate-400">Live</span>
+      <!-- AI BUSINESS INSIGHT BANNER -->
+      <div class="bg-[#121224] border border-purple-500/15 rounded-2xl p-4 relative overflow-hidden space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-purple-400 text-sm">✨</span>
+            <h3 class="text-xs font-bold text-white">AI Business Insight</h3>
+          </div>
+          <span class="text-[10px] text-purple-400 font-semibold">Today</span>
         </div>
-        <p id="ai-insight-text" class="text-[11px] text-slate-200 leading-relaxed">
-          Analyzing your company database records in real-time to generate custom operational suggestions...
+        <p id="ai-insight-text" class="text-[11px] text-slate-300 leading-relaxed pr-16">
+          Welcome to Quantum Ops Elite! Start recording your sales and inventory to receive real-time AI performance metrics and recommendations.
         </p>
+        <!-- Robot Graphic positioned bottom-right -->
+        <div class="absolute -bottom-2 right-2 w-16 h-16 flex items-center justify-center text-3xl opacity-90">
+          🤖
+        </div>
+      </div>
+
+      <!-- BOTTOM LOWER WIDGETS GRID (Sales Overview & Top Selling Product) -->
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Sales Overview (This Week) -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-white">Sales Overview <span class="text-[9px] text-slate-400 font-normal">(This Week)</span></span>
+            <button class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-ellipsis"></i></button>
+          </div>
+          <div class="pt-1">
+            <h3 id="widget-weekly-sales" class="text-sm font-bold text-white">₦0</h3>
+            <p class="text-[9px] text-emerald-400 font-medium flex items-center gap-1 mt-1">
+              <i class="fa-solid fa-arrow-trend-up text-[8px]"></i> 0%
+            </p>
+          </div>
+        </div>
+
+        <!-- Top Selling Product -->
+        <div class="bg-[#121224] border border-purple-500/10 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-white">Top Selling Product</span>
+            <button class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-ellipsis"></i></button>
+          </div>
+          <div id="widget-top-product" class="flex items-center gap-2 pt-0.5">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-xs text-purple-300">
+              <i class="fa-solid fa-box-open"></i>
+            </div>
+            <div class="overflow-hidden">
+              <p class="text-[10px] font-bold text-white truncate">No sales yet</p>
+              <p class="text-[9px] text-emerald-400 font-semibold">₦0</p>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
 
-    <!-- BOTTOM APP NAVIGATION BAR -->
-    <div class="absolute bottom-0 left-0 right-0 bg-[#0B0B16]/95 backdrop-blur-md border-t border-purple-500/10 px-6 py-2.5 flex items-center justify-between z-20">
-      <a href="dashboard.html" class="flex flex-col items-center gap-1 text-purple-400">
+    <!-- FIXED BOTTOM NAVIGATION BAR -->
+    <div class="absolute bottom-0 left-0 right-0 bg-[#0E0E1C] border-t border-purple-500/15 py-3 px-6 flex items-center justify-between z-20">
+      <button onclick="window.location.href='dashboard.html'" class="flex flex-col items-center gap-1 text-purple-400">
         <i class="fa-solid fa-house text-sm"></i>
-        <span class="text-[9px] font-bold">Dashboard</span>
-      </a>
-      <a href="sales.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <span class="text-[10px] font-semibold">Dashboard</span>
+      </button>
+      <button onclick="window.location.href='sales.html'" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white">
         <i class="fa-solid fa-cart-shopping text-sm"></i>
-        <span class="text-[9px] font-medium">Sales</span>
-      </a>
-      <a href="inventory.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <span class="text-[10px] font-medium">Sales</span>
+      </button>
+      <button onclick="window.location.href='inventory.html'" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white">
         <i class="fa-solid fa-box text-sm"></i>
-        <span class="text-[9px] font-medium">Inventory</span>
-      </a>
-      <a href="employees.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
-        <i class="fa-solid fa-user-group text-sm"></i>
-        <span class="text-[9px] font-medium">Employees</span>
-      </a>
-      <a href="more.html" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+        <span class="text-[10px] font-medium">Inventory</span>
+      </button>
+      <button onclick="window.location.href='employees.html'" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-users text-sm"></i>
+        <span class="text-[10px] font-medium">Employees</span>
+      </button>
+      <button onclick="window.location.href='more.html'" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white">
         <i class="fa-solid fa-ellipsis text-sm"></i>
-        <span class="text-[9px] font-medium">More</span>
-      </a>
+        <span class="text-[10px] font-medium">More</span>
+      </button>
     </div>
 
   </div>
 
-  <!-- DASHBOARD REAL-TIME DATA ENGINE -->
+  <!-- REAL-TIME DATABASE SYNC ENGINE -->
   <script>
     const SUPABASE_URL = "https://yqwettcektjwhwutuavn.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_mjCisMT_iaKwQurqSbY7ow_KMK5FSDW";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function initDashboard() {
+    async function loadUserDashboard() {
       // 1. Check logged-in user session
       const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-      
       if (!session) {
         // Redirect to login if unauthenticated
         window.location.href = 'index.html';
@@ -281,33 +363,39 @@
       }
 
       const user = session.user;
-      const userName = user.user_metadata?.full_name || 'Admin';
-      document.getElementById('user-greeting').textContent = `Good morning, ${userName} 👋`;
+      const fullName = user.user_metadata?.full_name || 'Admin';
+      document.getElementById('greeting-title').textContent = `Good morning, ${fullName} 👋`;
 
-      // 2. Fetch User's Specific Company (Ensuring complete data isolation per user)
-      const { data: companyData, error: compError } = await supabaseClient
-        .from('companies')
-        .select('*')
-        .eq('owner_id', user.id)
+      // 2. Fetch User Company details
+      const { data: companyUser } = await supabaseClient
+        .from('company_users')
+        .select('company_id, companies(name)')
+        .eq('user_id', user.id)
         .single();
 
-      if (companyData) {
-        document.getElementById('company-subtitle').textContent = `Managing: ${companyData.name}`;
-      } else {
-        document.getElementById('company-subtitle').textContent = `Connected securely to your account`;
+      if (companyUser && companyUser.companies) {
+        // You can use companyUser.company_id to filter all queries for this specific business instance
+        const companyId = companyUser.company_id;
+
+        // 3. Fetch Real-time Metrics starting from 0 (if no data exists yet)
+        // Example dynamic queries to your respective tables:
+        // const { data: sales } = await supabaseClient.from('sales').select('*').eq('company_id', companyId);
+        
+        // For now, initialized cleanly at 0 values for brand new users:
+        document.getElementById('stat-todays-sales').textContent = '₦0';
+        document.getElementById('stat-month-sales').textContent = '₦0';
+        document.getElementById('stat-total-profit').textContent = '₦0';
+        document.getElementById('stat-total-debts').textContent = '₦0';
+        document.getElementById('stat-low-stock').textContent = '0 Items';
+        document.getElementById('stat-total-expenses').textContent = '₦0';
+        document.getElementById('stat-employees-count').textContent = '0';
+        document.getElementById('stat-attendance').textContent = '0 / 0';
+        document.getElementById('widget-weekly-sales').textContent = '₦0';
       }
-
-      // 3. Real-time metric fetching placeholders or listeners
-      // You can expand these queries as you create sales/inventory tables for your separate tabs!
     }
 
-    async function handleLogout() {
-      await supabaseClient.auth.signOut();
-      window.location.href = 'index.html';
-    }
-
-    // Initialize on page load
-    initDashboard();
+    // Run dashboard initialization on load
+    window.addEventListener('DOMContentLoaded', loadUserDashboard);
   </script>
 </body>
 </html>
